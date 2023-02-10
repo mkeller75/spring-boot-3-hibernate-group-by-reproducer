@@ -35,29 +35,17 @@ class ActionRepositoryTest {
     
     @Nested
     class StatisticsTest {
-        UUID userId1;
-        String userName1;
+        User user1;
         
-        UUID userId2;
-        String userName2;
+        User user2;
         
-        UUID userId3;
-        String userName3;
+        User user3;
         
         @BeforeEach
         void setup() {
-            final var user1 = User.builder().id(UUID.randomUUID()).partnerNumber(PARTNER_NUMBER).firstname("John").lastname("Tester").email("john.tester@test.com").build();
-            final var user2 = User.builder().id(UUID.randomUUID()).partnerNumber(PARTNER_NUMBER).firstname("Chris").lastname("Tester").email("chris.tester@test.com").build();
-            final var user3 = User.builder().id(UUID.randomUUID()).partnerNumber(PARTNER_NUMBER).firstname("Anna").lastname("Tester").email("anna.tester@test.com").build();
-            
-            userId1 = user1.getId();
-            userName1 = user1.resolveFirstnameLastname();
-            
-            userId2 = user2.getId();
-            userName2 = user2.resolveFirstnameLastname();
-            
-            userId3 = user3.getId();
-            userName3 = user3.resolveFirstnameLastname();
+            user1 = User.builder().id(UUID.randomUUID()).partnerNumber(PARTNER_NUMBER).firstname("John").lastname("Tester").email("john.tester@test.com").build();
+            user2 = User.builder().id(UUID.randomUUID()).partnerNumber(PARTNER_NUMBER).firstname("Chris").lastname("Tester").email("chris.tester@test.com").build();
+            user3 = User.builder().id(UUID.randomUUID()).partnerNumber(PARTNER_NUMBER).firstname("Anna").lastname("Tester").email("anna.tester@test.com").build();
             
             final var deadline = OffsetDateTime.now().toLocalDate().plusDays(60);
             final var action1 = Action.builder().partnerNumber(PARTNER_NUMBER).title("Test 1").finding("Finding 1").deadline(deadline).user(user1).build();
@@ -85,14 +73,14 @@ class ActionRepositoryTest {
             // then
             assertThat(userStatistic).hasSize(3);
             
-            Statistic stat1 = getStatisticByName(userStatistic, userName1);
-            assertStatistic(stat1, userName1, userId1.toString(), 1);
+            Statistic stat1 = getStatisticByName(userStatistic, user1.resolveFirstnameLastname());
+            assertStatistic(stat1, user1, 1);
             
-            Statistic stat2 = getStatisticByName(userStatistic, userName2);
-            assertStatistic(stat2, userName2, userId2.toString(), 1);
+            Statistic stat2 = getStatisticByName(userStatistic, user2.resolveFirstnameLastname());
+            assertStatistic(stat2, user2, 1);
             
-            Statistic stat3 = getStatisticByName(userStatistic, userName3);
-            assertStatistic(stat3, userName3, userId3.toString(), 2);
+            Statistic stat3 = getStatisticByName(userStatistic, user3.resolveFirstnameLastname());
+            assertStatistic(stat3, user3, 2);
         }
         
         private Statistic getStatisticByName(List<? extends Statistic> statistics, String name) {
@@ -104,10 +92,10 @@ class ActionRepositoryTest {
             return statistic.get();
         }
         
-        private void assertStatistic(Statistic statistic, String name, String key, int count) {
+        private void assertStatistic(Statistic statistic, User user, int count) {
             assertThat(statistic)
-                .extracting(Statistic::getName, Statistic::getKey, Statistic::getCount)
-                .containsExactly(name, key, count);
+                .extracting(Statistic::getName, Statistic::getKey, Statistic::getAdditionalInfo, Statistic::getCount)
+                .containsExactly(user.resolveFirstnameLastname(), user.getId().toString(), user.resolveChannel(), count);
         }
     }
 }
